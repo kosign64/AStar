@@ -33,18 +33,18 @@ void OdometryMap::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
-    const double scaleMeter = width() / scale_;
+    scaleMeter_ = width() / scale_;
     QBrush brush(Qt::black);
     painter.setPen(Qt::NoPen);
     painter.setBrush(brush);
     painter.drawRect(0, 0, width(), height());
     painter.translate(width() / 2., height() / 2.);
     painter.translate(translateX_, translateY_);
-    if(!map_.empty()) drawMap(painter, scaleMeter);
-    drawGrid(painter, scaleMeter);
+    if(!map_.empty()) drawMap(painter, scaleMeter_);
+    drawGrid(painter, scaleMeter_);
     //drawRobot(painter, scaleMeter);
-    if(!laserRanges_.empty()) drawLaser(painter, scaleMeter);
-    if(!points_.empty()) drawPoints(painter, scaleMeter);
+    if(!laserRanges_.empty()) drawLaser(painter, scaleMeter_);
+    if(!points_.empty()) drawPoints(painter, scaleMeter_);
 }
 
 void OdometryMap::wheelEvent(QWheelEvent *event)
@@ -55,9 +55,21 @@ void OdometryMap::wheelEvent(QWheelEvent *event)
 
 void OdometryMap::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button() != Qt::LeftButton) return;
-    mousePressed_ = true;
-    mouseStart_ = event->pos();
+    if(event->button() == Qt::LeftButton)
+    {
+        mousePressed_ = true;
+        mouseStart_ = event->pos();
+    }
+    else if(event->button() == Qt::RightButton)
+    {
+        Point2D p;
+        p.x = (event->pos().x() - width() / 2 - translateX_) / scaleMeter_;
+        p.y = -(event->pos().y() - height() / 2 - translateY_) / scaleMeter_;
+
+        qDebug() << "C" << p.x << p.y << scaleMeter_;
+
+        Q_EMIT pressedPoint(p);
+    }
 }
 
 void OdometryMap::mouseMoveEvent(QMouseEvent *event)

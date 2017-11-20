@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(mainWidget);
     astar_ = new AStar(this);
 
-    QFile mapFile("/home/konstantin/ros/map.txt");
+    QFile mapFile("../AStar/map.txt");
     if(!mapFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qDebug() << "Can't open map file";
@@ -48,47 +48,9 @@ MainWindow::MainWindow(QWidget *parent)
     originalMap_->setMap(x, y, 0, mapWidth, mapHeight, mapResolution, mapValues);
     mapFile.close();
 
-    QFile posFile("/home/konstantin/ros/pos0.txt");
-    if(!posFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        qDebug() << "Can't open pos file";
-        exit(-1);
-    }
-    stream.setDevice(&posFile);
-    QString posString;
-    stream >> posString;
-    QStringList posList = posString.split(';');
-    Point2D start;
-    start.y = posList[0].toDouble();
-    start.x = posList[1].toDouble();
-    posFile.close();
-
-    posFile.setFileName("/home/konstantin/ros/pos1.txt");
-    if(!posFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        qDebug() << "Can't open pos file";
-        exit(-1);
-    }
-    stream.setDevice(&posFile);
-    stream >> posString;
-    posList = posString.split(';');
-    Point2D stop;
-    stop.y = posList[0].toDouble();
-    stop.x = posList[1].toDouble();
-    posFile.close();
-
     astar_ = new AStar(this);
     astar_->setMap(newMap);
-    qDebug() << start.x << start.y;
-    astar_->setStart(start.x, start.y);
-    astar_->setStop(stop.x, stop.y);
-    astar_->findPath();
     reducedMap_->setMapStruct(astar_->getMap());
-    qDebug() << "Start" << start.x << start.y << x << y << mapResolution;
-    //reducedMap_->addPoint(start);
-    //reducedMap_->addPoint(stop);
-    //originalMap_->addPoint(start);
-    //originalMap_->addPoint(stop);
     const auto path = astar_->getPath();
     for(const auto &p : path)
     {
@@ -96,8 +58,8 @@ MainWindow::MainWindow(QWidget *parent)
         reducedMap_->addPoint(p);
     }
 
-
-    qDebug() << mapResolution << mapWidth << mapHeight;
+    connect(originalMap_, &OdometryMap::pressedPoint, this,
+            &MainWindow::setPoint);
 }
 
 
@@ -112,5 +74,29 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Escape)
     {
         close();
+    }
+}
+
+void MainWindow::setPoint(Point2D p)
+{
+    static int i = 0;
+    if(i == 0)
+    {
+        astar_->setStart(p.x, p.y);
+        i++;
+        return;
+    }
+    else
+    {
+        i = 0;
+        astar_->setStop(p.x, p.y);
+        astar_->findPath();
+        originalMap_->clearPoints();
+        const auto path = astar_->getPath();
+        for(const auto &p : path)
+        {
+            originalMap_->addPoint(p);
+        }
+        reducedMap_->setMapStruct(astar_->getMap());
     }
 }

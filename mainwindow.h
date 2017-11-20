@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "common.h"
 
 class OdometryMap;
 class AStar;
@@ -25,6 +26,9 @@ private:
     OdometryMap *originalMap_;
     OdometryMap *reducedMap_;
     AStar *astar_;
+
+public slots:
+    void setPoint(Point2D p);
 };
 
 #endif // MAINWINDOW_H

@@ -33,6 +33,8 @@ private:
     float laserAngleIncrement_;
     vector<float> laserRanges_;
 
+    double scaleMeter_;
+
     vector<int8_t> map_;
     float mapResolution_;
     int32_t mapWidth_;
@@ -60,6 +62,7 @@ private:
     void drawPoints(QPainter &painter, const double scaleMeter);
 
 Q_SIGNALS:
+    void pressedPoint(Point2D p);
 
 public Q_SLOTS:
     void setRobotPosition(double x, double y, double angle);
