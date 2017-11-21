@@ -77,7 +77,7 @@ void AStar::reduceMap()
             mapData.push_back(maxValue);
         }
     }
-    map_.map = mapData;
+    map_.map = std::move(mapData);
     map_.width = width;
     map_.height = height;
     map_.resolution = resolution;

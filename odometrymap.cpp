@@ -66,8 +66,6 @@ void OdometryMap::mousePressEvent(QMouseEvent *event)
         p.x = (event->pos().x() - width() / 2 - translateX_) / scaleMeter_;
         p.y = -(event->pos().y() - height() / 2 - translateY_) / scaleMeter_;
 
-        qDebug() << "C" << p.x << p.y << scaleMeter_;
-
         Q_EMIT pressedPoint(p);
     }
 }
