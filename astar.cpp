@@ -81,7 +81,35 @@ void AStar::reduceMap()
     map_.width = width;
     map_.height = height;
     map_.resolution = resolution;
-    reduced_ = true;
+}
+
+void AStar::dilateMap()
+{
+    vector<int8_t> dilatedMap = map_.map;
+    for(int x = 1; x < (map_.width - 1); ++x)
+    {
+        for(int y = 1; y < (map_.height -1); ++y)
+        {
+            const MapPoint points[] =
+            {{x - 1, y - 1},
+             {x - 1, y    },
+             {x - 1, y + 1},
+             {x    , y + 1},
+             {x + 1, y + 1},
+             {x + 1, y    },
+             {x + 1, y - 1},
+             {x    , y - 1}};
+            for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+            {
+                if(map_(points[i]) == 100)
+                {
+                    dilatedMap[x + y * map_.width] = 100;
+                    break;
+                }
+            }
+        }
+    }
+    map_.map = std::move(dilatedMap);
 }
 
 MapPoint AStar::xyToMapPoint(Point2D p)

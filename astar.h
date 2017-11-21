@@ -49,6 +49,7 @@ private:
     std::vector<AStarPoint> data_;
 
     void reduceMap();
+    void dilateMap();
     MapPoint xyToMapPoint(Point2D p);
     MapPoint xyToMapPoint(float x, float y);
     void mapPointToxy(MapPoint point, float &x, float &y);
@@ -62,7 +63,7 @@ signals:
 public slots:
     void setStart(float x, float y) {start_ = Point2D{x, y};}
     void setStop(float x, float y) {stop_ = Point2D{x, y};}
-    void setMap(const Map &map) {map_ = map; reduced_ = false;}
+    void setMap(const Map &map) {map_ = map; reduceMap(); dilateMap();}
 };
 
 #endif // ASTAR_H
