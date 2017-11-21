@@ -3,7 +3,8 @@
 
 using namespace std;
 
-double mapDistance(MapPoint p1, MapPoint p2);
+static double mapDistance(const MapPoint &p1, const MapPoint &p2);
+static bool checkNeighbors(const MapPoint &p, const Map &map);
 
 AStar::AStar(QObject *parent) : QObject(parent),
     start_{-1, -1},
@@ -23,7 +24,9 @@ void AStar::findPath()
     stopPath_ = xyToMapPoint(stop_);
     if(startPath_.x == stopPath_.x &&
             startPath_.y == stopPath_.y) return;
-    if(map_(stopPath_.x, stopPath_.y) == 100) return;
+    if(map_(stopPath_.x, stopPath_.y) == 100 ||
+            !checkNeighbors(startPath_, map_) ||
+            !checkNeighbors(stopPath_, map_)) return;
     data_.clear();
     AStarPoint startPoint(startPath_);
     startPoint.checked = true;
@@ -91,22 +94,9 @@ void AStar::dilateMap()
     {
         for(int y = 1; y < (map_.height -1); ++y)
         {
-            const MapPoint points[] =
-            {{x - 1, y - 1},
-             {x - 1, y    },
-             {x - 1, y + 1},
-             {x    , y + 1},
-             {x + 1, y + 1},
-             {x + 1, y    },
-             {x + 1, y - 1},
-             {x    , y - 1}};
-            for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+            if(!checkNeighbors(MapPoint{x, y}, map_))
             {
-                if(map_(points[i]) == 100)
-                {
-                    dilatedMap[x + y * map_.width] = 100;
-                    break;
-                }
+                dilatedMap[x + y * map_.width] = 100;
             }
         }
     }
@@ -142,11 +132,6 @@ Point2D AStar::mapPointToxy(MapPoint point)
     mapPointToxy(point, res.x, res.y);
 
     return res;
-}
-
-double mapDistance(MapPoint p1, MapPoint p2)
-{
-    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
 void AStar::algorithm()
@@ -196,22 +181,7 @@ void AStar::checkPoint(const MapPoint &point,
             map_(point.x, point.y) == -1) return;
     if(point.x < 1 || point.x >= (map_.width - 1) ||
             point.y < 1 || point.y >= (map_.height - 1)) return;
-    const MapPoint points[] =
-    {{point.x - 1, point.y - 1},
-     {point.x - 1, point.y    },
-     {point.x - 1, point.y + 1},
-     {point.x    , point.y + 1},
-     {point.x + 1, point.y + 1},
-     {point.x + 1, point.y    },
-     {point.x + 1, point.y - 1},
-     {point.x    , point.y - 1}};
-    for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
-    {
-        if(map_(points[i]) == 100)
-        {
-            return;
-        }
-    }
+    if(!checkNeighbors(point, map_)) return;
     AStarPoint starPoint(point);
     starPoint.weight = mapDistance(point, stopPath_) +
             mapDistance(point, prev.point);
@@ -229,4 +199,31 @@ void AStar::checkPoint(const MapPoint &point,
     starPoint.smallestPath = prev.smallestPath;
     starPoint.smallestPath.push_back(prev.point);
     data_.push_back(starPoint);
+}
+
+static double mapDistance(const MapPoint &p1, const MapPoint &p2)
+{
+    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+}
+
+static bool checkNeighbors(const MapPoint &p, const Map &map)
+{
+    const MapPoint points[] =
+    {{p.x - 1, p.y - 1},
+     {p.x - 1, p.y    },
+     {p.x - 1, p.y + 1},
+     {p.x    , p.y + 1},
+     {p.x + 1, p.y + 1},
+     {p.x + 1, p.y    },
+     {p.x + 1, p.y - 1},
+     {p.x    , p.y - 1}};
+    for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+    {
+        if(map(points[i]) == 100)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
