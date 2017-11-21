@@ -4,12 +4,6 @@
 #include <QObject>
 #include "common.h"
 
-struct MapPoint
-{
-    int x;
-    int y;
-};
-
 class AStar : public QObject
 {
     Q_OBJECT
@@ -29,7 +23,6 @@ private:
     MapPoint stopPath_;
     std::vector<Point2D> path_;
     std::vector<MapPoint> mapPath_;
-    bool reduced_;
 
     struct AStarPoint
     {

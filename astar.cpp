@@ -7,8 +7,7 @@ double mapDistance(MapPoint p1, MapPoint p2);
 
 AStar::AStar(QObject *parent) : QObject(parent),
     start_{-1, -1},
-    stop_{-1, -1},
-    reduced_(false)
+    stop_{-1, -1}
 {
 
 }
@@ -16,8 +15,10 @@ AStar::AStar(QObject *parent) : QObject(parent),
 void AStar::findPath()
 {
     if(map_.map.empty()) return;
-    if(!reduced_) reduceMap();
-    if(start_.x < 0 || stop_.y < 0) return;
+    for(auto &data : map_.map)
+    {
+        if(data == 50) data = 0;
+    }
     startPath_ = xyToMapPoint(start_);
     stopPath_ = xyToMapPoint(stop_);
     if(startPath_.x == stopPath_.x &&

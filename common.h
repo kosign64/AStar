@@ -4,6 +4,18 @@
 #include <vector>
 #include <stdint-gcc.h>
 
+struct MapPoint
+{
+    int x;
+    int y;
+};
+
+struct Point2D
+{
+    float x;
+    float y;
+};
+
 struct Map
 {
     float resolution;
@@ -33,12 +45,16 @@ struct Map
     {
         return map[x + y * width];
     }
-};
 
-struct Point2D
-{
-    float x;
-    float y;
+    int8_t &operator()(const MapPoint &p)
+    {
+        return map[p.x + p.y * width];
+    }
+
+    const int8_t &operator()(const MapPoint &p) const
+    {
+        return map[p.x + p.y * width];
+    }
 };
 
 #endif // COMMON_H
