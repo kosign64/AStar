@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(mainWidget);
     astar_ = new AStar(this);
 
-    QFile mapFile("../AStar/map.txt");
+    QFile mapFile("../AStar/mcu_map.txt");
     if(!mapFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qDebug() << "Can't open map file";
