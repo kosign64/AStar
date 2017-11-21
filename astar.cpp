@@ -191,9 +191,26 @@ int AStar::isDataContains(const MapPoint &point) const
 void AStar::checkPoint(const MapPoint &point,
                        const AStar::AStarPoint &prev)
 {
-    if(map_(point.x, point.y) == 100) return;
-    if(point.x < 0 || point.x >= map_.width ||
-            point.y < 0 || point.y >= map_.height) return;
+    if(map_(point.x, point.y) == 100 ||
+            map_(point.x, point.y) == -1) return;
+    if(point.x < 1 || point.x >= (map_.width - 1) ||
+            point.y < 1 || point.y >= (map_.height - 1)) return;
+    const MapPoint points[] =
+    {{point.x - 1, point.y - 1},
+     {point.x - 1, point.y    },
+     {point.x - 1, point.y + 1},
+     {point.x    , point.y + 1},
+     {point.x + 1, point.y + 1},
+     {point.x + 1, point.y    },
+     {point.x + 1, point.y - 1},
+     {point.x    , point.y - 1}};
+    for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+    {
+        if(map_(points[i]) == 100)
+        {
+            return;
+        }
+    }
     AStarPoint starPoint(point);
     starPoint.weight = mapDistance(point, stopPath_) +
             mapDistance(point, prev.point);
