@@ -143,7 +143,7 @@ void AStar::algorithm()
     {
         checkPoint(points[i], best);
     }
-    best.checked = true;
+    data_[0].checked = true;
 }
 
 int AStar::isDataContains(const MapPoint &point) const
