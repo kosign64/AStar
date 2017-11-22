@@ -29,7 +29,7 @@ void AStar::findPath()
             !checkNeighbors(stopPath_, map_)) return;
     data_.clear();
     AStarPoint startPoint(startPath_);
-    startPoint.checked = true;
+    startPoint.weight = 0;
     data_.push_back(startPoint);
     int index = -1;
     while(index == -1)
@@ -136,14 +136,18 @@ Point2D AStar::mapPointToxy(MapPoint point)
 
 void AStar::algorithm()
 {
-    std::sort(data_.begin(), data_.end(),
-              [](const AStarPoint &a, const AStarPoint &b) -> bool
-                {
-                    int aChecked = (a.checked) ? 100000 : 1;
-                    int bChecked = (b.checked) ? 100000 : 1;
-                    return (a.weight * aChecked) < (b.weight * bChecked);
-                });
-    AStarPoint best = data_[0];
+    int bestIndex = -1;
+    double smallestWeight = 1000000;
+    for(size_t i = 0; i < data_.size(); ++i)
+    {
+        const AStarPoint &p = data_[i];
+        if(!p.checked && (p.weight < smallestWeight))
+        {
+            bestIndex = i;
+            smallestWeight = p.weight;
+        }
+    }
+    AStarPoint best = data_[bestIndex];
     const MapPoint points[] =
     {{best.point.x - 1, best.point.y - 1},
      {best.point.x - 1, best.point.y    },
@@ -157,7 +161,7 @@ void AStar::algorithm()
     {
         checkPoint(points[i], best);
     }
-    data_[0].checked = true;
+    data_[bestIndex].checked = true;
 }
 
 int AStar::isDataContains(const MapPoint &point) const
@@ -192,13 +196,13 @@ void AStar::checkPoint(const MapPoint &point,
         {
             starPoint.smallestPath = prev.smallestPath;
             starPoint.smallestPath.push_back(prev.point);
-            data_[index] = starPoint;
+            data_[index] = std::move(starPoint);
         }
         return;
     }
     starPoint.smallestPath = prev.smallestPath;
     starPoint.smallestPath.push_back(prev.point);
-    data_.push_back(starPoint);
+    data_.push_back(std::move(starPoint));
 }
 
 static double mapDistance(const MapPoint &p1, const MapPoint &p2)
