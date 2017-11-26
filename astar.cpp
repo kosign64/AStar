@@ -22,20 +22,25 @@ void AStar::findPath()
     }
     startPath_ = xyToMapPoint(start_);
     stopPath_ = xyToMapPoint(stop_);
-    if(startPath_.x == stopPath_.x &&
-            startPath_.y == stopPath_.y) return;
-    if(map_(stopPath_.x, stopPath_.y) == 100 ||
-            !checkNeighbors(startPath_, map_) ||
+    if(map_(stopPath_) ||
             !checkNeighbors(stopPath_, map_)) return;
     data_.clear();
     AStarPoint startPoint(startPath_);
     startPoint.weight = 0;
     data_.push_back(startPoint);
     int index = -1;
-    while(index == -1)
+    try
     {
-        algorithm();
-        index = isDataContains(stopPath_);
+        while(index == -1)
+        {
+            algorithm();
+            index = isDataContains(stopPath_);
+        }
+    }
+    catch(const std::runtime_error &e)
+    {
+        qDebug() << e.what();
+        return;
     }
     path_.clear();
     for(const auto &p : data_[index].smallestPath)
@@ -137,7 +142,7 @@ Point2D AStar::mapPointToxy(MapPoint point)
 void AStar::algorithm()
 {
     int bestIndex = -1;
-    double smallestWeight = 1000000;
+    double smallestWeight = std::numeric_limits<double>::max();
     for(size_t i = 0; i < data_.size(); ++i)
     {
         const AStarPoint &p = data_[i];
@@ -147,6 +152,9 @@ void AStar::algorithm()
             smallestWeight = p.weight;
         }
     }
+    if(bestIndex == -1) throw std::runtime_error("There is no free way"
+                                                 " from start point to"
+                                                 " end point");
     AStarPoint best = data_[bestIndex];
     const MapPoint points[] =
     {{best.point.x - 1, best.point.y - 1},
@@ -157,9 +165,9 @@ void AStar::algorithm()
      {best.point.x + 1, best.point.y    },
      {best.point.x + 1, best.point.y - 1},
      {best.point.x    , best.point.y - 1}};
-    for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+    for(const auto &point : points)
     {
-        checkPoint(points[i], best);
+        checkPoint(point, best);
     }
     data_[bestIndex].checked = true;
 }
@@ -221,9 +229,9 @@ static bool checkNeighbors(const MapPoint &p, const Map &map)
      {p.x + 1, p.y    },
      {p.x + 1, p.y - 1},
      {p.x    , p.y - 1}};
-    for(size_t i = 0; i < sizeof(points) / sizeof(points[0]); ++i)
+    for(const auto &point : points)
     {
-        if(map(points[i]) == 100)
+        if(map(point) == 100)
         {
             return false;
         }
