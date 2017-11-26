@@ -35,13 +35,7 @@ private:
 
     double scaleMeter_;
 
-    vector<int8_t> map_;
-    float mapResolution_;
-    int32_t mapWidth_;
-    int32_t mapHeight_;
-    float mapX_;
-    float mapY_;
-    float mapAngle_;
+    Map map_;
 
     double scale_;
     double translateX_;

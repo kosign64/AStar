@@ -40,7 +40,7 @@ void OdometryMap::paintEvent(QPaintEvent *)
     painter.drawRect(0, 0, width(), height());
     painter.translate(width() / 2., height() / 2.);
     painter.translate(translateX_, translateY_);
-    if(!map_.empty()) drawMap(painter, scaleMeter_);
+    if(!map_.map.empty()) drawMap(painter, scaleMeter_);
     drawGrid(painter, scaleMeter_);
     //drawRobot(painter, scaleMeter);
     if(!laserRanges_.empty()) drawLaser(painter, scaleMeter_);
@@ -113,16 +113,16 @@ void OdometryMap::drawGrid(QPainter &painter, const double scaleMeter)
 void OdometryMap::drawMap(QPainter &painter, const double scaleMeter)
 {
     painter.save();
-    const double mapScale = mapResolution_ * scaleMeter;
+    const double mapScale = map_.resolution * scaleMeter;
     QBrush brush(Qt::lightGray);
     painter.setPen(Qt::NoPen);
-    painter.translate(mapX_ * scaleMeter, -mapY_ * scaleMeter);
-    painter.rotate(-mapAngle_ * 180. / M_PI);
-    for(int x = 0; x < mapWidth_; ++x)
+    painter.translate(map_.x * scaleMeter, -map_.y * scaleMeter);
+    //painter.rotate(-mapAngle_ * 180. / M_PI);
+    for(int x = 0; x < map_.width; ++x)
     {
-        for(int y = 0; y < mapHeight_; ++y)
+        for(int y = 0; y < map_.height; ++y)
         {
-            int8_t occupacy = map_[x + y * mapWidth_];
+            int8_t occupacy = map_.map[x + y * map_.width];
             if(occupacy == -1)
             {
                 continue;
@@ -144,11 +144,11 @@ void OdometryMap::drawMap(QPainter &painter, const double scaleMeter)
             }
             painter.setBrush(brush);
             painter.drawRect(
-                        QRectF((x * mapResolution_ -
-                                mapResolution_ / 2) *
+                        QRectF((x * map_.resolution -
+                                map_.resolution / 2) *
                                scaleMeter,
-                               -(y * mapResolution_ -
-                                mapResolution_ / 2) *
+                               -(y * map_.resolution -
+                                map_.resolution / 2) *
                                scaleMeter,
                                mapScale,
                                mapScale));
@@ -255,23 +255,17 @@ void OdometryMap::setMap(float xOrigin, float yOrigin, float angle,
                          int32_t width, int32_t height,
                          float resolution, const vector<int8_t> map)
 {
-    map_ = map;
-    mapX_ = xOrigin;
-    mapY_ = yOrigin;
-    mapAngle_ = angle;
-    mapWidth_ = width;
-    mapHeight_ = height;
-    mapResolution_ = resolution;
+    map_.map = map;
+    map_.x = xOrigin;
+    map_.y = yOrigin;
+    //mapAngle_ = angle;
+    map_.width = width;
+    map_.height = height;
+    map_.resolution = resolution;
 }
 
 void OdometryMap::setMapStruct(const Map &map)
 {
-    map_ = map.map;
-    mapHeight_ = map.height;
-    mapWidth_ = map.width;
-    mapResolution_ = map.resolution;
-    mapX_ = map.x;
-    mapY_ = map.y;
-    mapAngle_ = 0;
+    map_ = map;
 }
 
