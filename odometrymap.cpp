@@ -49,7 +49,7 @@ void OdometryMap::paintEvent(QPaintEvent *)
 
 void OdometryMap::wheelEvent(QWheelEvent *event)
 {
-    scale_ += event->angleDelta().y() / 50.;
+    scale_ -= event->angleDelta().y() / 50.;
     if(scale_ < 1) scale_ = 1;
 }
 
