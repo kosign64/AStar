@@ -196,7 +196,7 @@ void AStar::checkPoint(const MapPoint &point,
     if(!checkNeighbors(point, map_)) return;
     AStarPoint starPoint(point);
     starPoint.weight = mapDistance(point, stopPath_) +
-            mapDistance(point, prev.point);
+            mapDistance(point, prev.point) + prev.weight;
     int index = isDataContains(point);
     if(index != -1)
     {
