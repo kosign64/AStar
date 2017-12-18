@@ -27,6 +27,7 @@ void AStar::findPath()
     data_.clear();
     AStarPoint startPoint(startPath_);
     startPoint.weight = 0;
+    startPoint.pathWeight = 0;
     data_.push_back(startPoint);
     int index = -1;
     try
@@ -48,6 +49,7 @@ void AStar::findPath()
         map_(p.x, p.y) = 50;
         path_.push_back(mapPointToxy(p));
     }
+    qDebug() << "Size: " << data_.size();
 }
 
 void AStar::findPath(const Point2D &start, const Point2D &stop)
@@ -195,8 +197,9 @@ void AStar::checkPoint(const MapPoint &point,
             point.y < 1 || point.y >= (map_.height - 1)) return;
     if(!checkNeighbors(point, map_)) return;
     AStarPoint starPoint(point);
+    starPoint.pathWeight = prev.pathWeight + mapDistance(point, prev.point);
     starPoint.weight = mapDistance(point, stopPath_) +
-            mapDistance(point, prev.point) + prev.weight;
+            mapDistance(point, prev.point) + starPoint.pathWeight / 1.1;
     int index = isDataContains(point);
     if(index != -1)
     {
@@ -211,6 +214,16 @@ void AStar::checkPoint(const MapPoint &point,
     starPoint.smallestPath = prev.smallestPath;
     starPoint.smallestPath.push_back(prev.point);
     data_.push_back(std::move(starPoint));
+}
+
+void AStar::setMap(const Map &map)
+{
+    map_ = map;
+    //reduceMap();
+    for(int i = 0; i < 5; ++i)
+    {
+        dilateMap();
+    }
 }
 
 static double mapDistance(const MapPoint &p1, const MapPoint &p2)

@@ -27,6 +27,7 @@ private:
     struct AStarPoint
     {
         double weight;
+        double pathWeight;
         std::vector<MapPoint> smallestPath;
         bool checked;
         uint8_t direction;
@@ -56,7 +57,7 @@ signals:
 public slots:
     void setStart(float x, float y) {start_ = Point2D{x, y};}
     void setStop(float x, float y) {stop_ = Point2D{x, y};}
-    void setMap(const Map &map) {map_ = map; reduceMap(); dilateMap();}
+    void setMap(const Map &map);
 };
 
 #endif // ASTAR_H
