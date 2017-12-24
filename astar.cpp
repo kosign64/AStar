@@ -18,7 +18,7 @@ void AStar::findPath()
     if(map_.map.empty()) return;
     for(auto &data : map_.map)
     {
-        if(data == 50) data = 0;
+        if(data == 50 || data == 10) data = 0;
     }
     startPath_ = xyToMapPoint(start_);
     stopPath_ = xyToMapPoint(stop_);
@@ -193,13 +193,13 @@ void AStar::checkPoint(const MapPoint &point,
 {
     if(map_(point.x, point.y) == 100 ||
             map_(point.x, point.y) == -1) return;
-    if(point.x < 1 || point.x >= (map_.width - 1) ||
-            point.y < 1 || point.y >= (map_.height - 1)) return;
+//    if(point.x < 1 || point.x >= (map_.width - 1) ||
+//            point.y < 1 || point.y >= (map_.height - 1)) return;
     //if(!checkNeighbors(point, map_)) return;
     AStarPoint starPoint(point);
-    starPoint.pathWeight = prev.pathWeight + 1/*mapDistance(point, prev.point)*/;
-    starPoint.weight = mapDistance(point, stopPath_) +
-            1/*mapDistance(point, prev.point)*/ + starPoint.pathWeight / 1.1;
+    starPoint.pathWeight = prev.pathWeight + mapDistance(point, prev.point);
+    starPoint.weight = mapDistance(point, stopPath_) + starPoint.pathWeight / 1.2;
+    map_(point.x, point.y) = 10;
     int index = isDataContains(point);
     if(index != -1)
     {
@@ -220,7 +220,7 @@ void AStar::setMap(const Map &map)
 {
     map_ = map;
     //reduceMap();
-    for(int i = 0; i < 7; ++i)
+    for(int i = 0; i < 10; ++i)
     {
         dilateMap();
     }

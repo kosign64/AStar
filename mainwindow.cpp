@@ -60,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(originalMap_, &OdometryMap::pressedPoint, this,
             &MainWindow::setPoint);
+    connect(reducedMap_, &OdometryMap::pressedPoint, this,
+            &MainWindow::setPoint);
 }
 
 

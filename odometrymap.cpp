@@ -137,6 +137,10 @@ void OdometryMap::drawMap(QPainter &painter, const double scaleMeter)
                 {
                     brush.setColor(Qt::green);
                 }
+                else if(occupacy == 10)
+                {
+                    brush.setColor(Qt::darkGray);
+                }
                 else
                 {
                     brush.setColor(Qt::lightGray);
