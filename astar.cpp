@@ -1,6 +1,12 @@
 #include "astar.h"
 #include <QDebug>
 
+// Uncomment one of these methods
+//#define DIJKSTRA
+//#define A_STAR
+//#define GOAL
+#define A_STAR_MOD
+
 using namespace std;
 
 static double mapDistance(const MapPoint &p1, const MapPoint &p2);
@@ -198,7 +204,15 @@ void AStar::checkPoint(const MapPoint &point,
     //if(!checkNeighbors(point, map_)) return;
     AStarPoint starPoint(point);
     starPoint.pathWeight = prev.pathWeight + mapDistance(point, prev.point);
-    starPoint.weight = mapDistance(point, stopPath_) + starPoint.pathWeight / 1.2;
+#ifdef DIJKSTRA
+    starPoint.weight = starPoint.pathWeight;
+#elif defined(A_STAR)
+    starPoint.weight = mapDistance(point, stopPath_) + starPoint.pathWeight;
+#elif defined(A_STAR_MOD)
+    starPoint.weight = mapDistance(point, stopPath_) * 1.2 + starPoint.pathWeight;
+#else
+    starPoint.weight = mapDistance(point, stopPath_);
+#endif
     map_(point.x, point.y) = 10;
     int index = isDataContains(point);
     if(index != -1)
