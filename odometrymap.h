@@ -38,8 +38,7 @@ private:
     Map map_;
 
     double scale_;
-    double translateX_;
-    double translateY_;
+    QPointF shift_;
 
     bool mousePressed_;
     QPoint mouseStart_;
@@ -54,6 +53,9 @@ private:
     void drawRobot(QPainter &painter, const double scaleMeter);
     void drawLaser(QPainter &painter, const double scaleMeter);
     void drawPoints(QPainter &painter, const double scaleMeter);
+
+    QPointF screenToMap(QPointF p);
+    QPointF mapToScreen(QPointF p);
 
 Q_SIGNALS:
     void pressedPoint(Point2D p);

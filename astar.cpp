@@ -1,4 +1,5 @@
 #include "astar.h"
+#include <cmath>
 #include <QDebug>
 
 // Uncomment one of these methods

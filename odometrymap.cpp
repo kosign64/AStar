@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include <QFile>
 #include <QTextStream>
+#include <cmath>
 #include <QDebug>
 
 OdometryMap::OdometryMap(QWidget *parent) : QWidget(parent),
@@ -11,8 +12,7 @@ OdometryMap::OdometryMap(QWidget *parent) : QWidget(parent),
     yPosition_(0),
     anglePosition_(0),
     scale_(26),
-    translateX_(0),
-    translateY_(0),
+    shift_{0.0, 0.0},
     mousePressed_(false),
     // Measured!
     ROBOT_WIDTH(0.65),
@@ -39,7 +39,7 @@ void OdometryMap::paintEvent(QPaintEvent *)
     painter.setBrush(brush);
     painter.drawRect(0, 0, width(), height());
     painter.translate(width() / 2., height() / 2.);
-    painter.translate(translateX_, translateY_);
+    painter.translate(shift_);
     if(!map_.map.empty()) drawMap(painter, scaleMeter_);
     drawGrid(painter, scaleMeter_);
     //drawRobot(painter, scaleMeter);
@@ -49,8 +49,20 @@ void OdometryMap::paintEvent(QPaintEvent *)
 
 void OdometryMap::wheelEvent(QWheelEvent *event)
 {
-    scale_ -= event->angleDelta().y() / 50.;
-    if(scale_ < 1) scale_ = 1;
+    QPointF mousePoint = screenToMap(event->posF());
+    if(event->angleDelta().y() == 0) return;
+    if(event->angleDelta().y() > 0)
+    {
+        scale_ /= 1.2;
+    }
+    else
+    {
+        scale_ *= 1.2;
+    }
+    scaleMeter_ = width() / scale_;
+    QPointF worldPoint = mapToScreen(mousePoint);
+    shift_ += (event->posF() - worldPoint);
+    update();
 }
 
 void OdometryMap::mousePressEvent(QMouseEvent *event)
@@ -63,8 +75,8 @@ void OdometryMap::mousePressEvent(QMouseEvent *event)
     else if(event->button() == Qt::RightButton)
     {
         Point2D p;
-        p.x = (event->pos().x() - width() / 2 - translateX_) / scaleMeter_;
-        p.y = -(event->pos().y() - height() / 2 - translateY_) / scaleMeter_;
+        p.x = (event->pos().x() - width() / 2 - shift_.x()) / scaleMeter_;
+        p.y = -(event->pos().y() - height() / 2 - shift_.y()) / scaleMeter_;
 
         Q_EMIT pressedPoint(p);
     }
@@ -75,8 +87,7 @@ void OdometryMap::mouseMoveEvent(QMouseEvent *event)
     if(mousePressed_)
     {
         QPoint delta = event->pos() - mouseStart_;
-        translateX_ += delta.x();
-        translateY_ += delta.y();
+        shift_ += delta;
         mouseStart_ = event->pos();
     }
 }
@@ -91,22 +102,29 @@ void OdometryMap::drawGrid(QPainter &painter, const double scaleMeter)
     QPen pen(Qt::white);
     painter.setPen(pen);
 
-    for(double x = 0; x < (width() * 2.); x += scaleMeter)
+    QPointF upperLimit{screenToMap(QPointF(width(), height()))};
+    QPointF lowerLimit{screenToMap(QPointF(0, 0))};
+
+    for(double x = 0; x < upperLimit.x() * scaleMeter; x += scaleMeter)
     {
-        painter.drawLine(x, (-height() * 2.), x, (height() * 2.));
+        painter.drawLine(x, lowerLimit.y() * scaleMeter,
+                         x, upperLimit.y() * scaleMeter);
     }
-    for(double x = 0; x > (-width() * 2.); x -= scaleMeter)
+    for(double x = 0; x > lowerLimit.x() * scaleMeter; x -= scaleMeter)
     {
-        painter.drawLine(x, (-height() * 2.), x, (height() * 2.));
+        painter.drawLine(x, lowerLimit.y() * scaleMeter,
+                         x, upperLimit.y() * scaleMeter);
     }
 
-    for(double y = 0; y < (height() * 2.); y += scaleMeter)
+    for(double y = 0; y < upperLimit.y() * scaleMeter; y += scaleMeter)
     {
-        painter.drawLine((-width() * 2.), y, (width() * 2.), y);
+        painter.drawLine(lowerLimit.x() * scaleMeter,
+                         y, upperLimit.x() * scaleMeter, y);
     }
-    for(double y = 0; y > (-height() * 2.); y -= scaleMeter)
+    for(double y = 0; y > lowerLimit.y() * scaleMeter; y -= scaleMeter)
     {
-        painter.drawLine((-width() * 2.), y, (width() * 2.), y);
+        painter.drawLine(lowerLimit.x() * scaleMeter, y,
+                         upperLimit.x() * scaleMeter, y);
     }
 }
 
@@ -273,3 +291,14 @@ void OdometryMap::setMapStruct(const Map &map)
     map_ = map;
 }
 
+QPointF OdometryMap::mapToScreen(QPointF p)
+{
+    QPointF center(width() / 2., height() / 2.);
+    return p * scaleMeter_ + center + shift_;
+}
+
+QPointF OdometryMap::screenToMap(QPointF p)
+{
+    QPointF center(width() / 2., height() / 2.);
+    return (p - center - shift_) / scaleMeter_;
+}
